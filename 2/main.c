@@ -2,6 +2,7 @@
 #include <util/delay.h>
 #include <stdbool.h>
 #include <avr/interrupt.h>
+#include <stdio.h>
 
 
 volatile int led_state1 = 0;
@@ -17,8 +18,48 @@ void interrupt_init()
     GIMSK |= (1 << PCIE_B2);
     PCMSK_B1 |= (1 << B1);
     PCMSK_B2 |= (1 << B2);
+
+    
 }
 
+#if defined(__AVR_ATtiny24__) || defined(__AVR_ATtiny44__) || defined(__AVR_ATtiny84__)
+ISR(PCINT1_vect, ISR_ALIASOF(PCINT0_vect));
+ISR(PCINT0_vect) 
+{
+   printf("PCINT0_vect\n");
+    _delay_ms(50);
+
+    if (!(PIN_B1 & (1 << B1))) 
+    { 
+        if (!flag1) 
+        {
+            led_state1 = !led_state1;
+            flag1 = true;
+        }
+        _delay_ms(10);
+    } 
+    else 
+    {
+        flag1 = false;
+    }
+    
+    if (!(PIN_B2 & (1 << B2))) 
+    { 
+        if (!flag2) 
+        {
+            led_state2 = !led_state2;
+            flag2 = true;
+        }
+        _delay_ms(10);
+    } 
+    else 
+    {
+        flag2 = false;
+    }
+    
+    led_state3 = led_state1 && led_state2;
+}
+#else
 ISR(PCINT0_vect) 
 {
     _delay_ms(50);
@@ -53,6 +94,7 @@ ISR(PCINT0_vect)
     
     led_state3 = led_state1 && led_state2;
 }
+#endif
 
 int main(void) 
 {
