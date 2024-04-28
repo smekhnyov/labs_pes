@@ -26,7 +26,6 @@ void interrupt_init()
 ISR(PCINT1_vect, ISR_ALIASOF(PCINT0_vect));
 ISR(PCINT0_vect) 
 {
-   printf("PCINT0_vect\n");
     _delay_ms(50);
 
     if (!(PIN_B1 & (1 << B1))) 
