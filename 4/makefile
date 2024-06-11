@@ -1,0 +1,446 @@
+include configuration.mk
+
+OBJCOPY=avr-objcopy
+CC=avr-gcc
+
+ifeq ($(findstring B, ${ENCODER_1_DT}), B)
+	PORT_ENCODER_1_DT=PORTB
+	DDR_ENCODER_1_DT=DDRB
+else
+	ifeq ($(findstring C, ${ENCODER_1_DT}), C)
+		PORT_ENCODER_1_DT=PORTC
+		DDR_ENCODER_1_DT=DDRC
+	else
+		PORT_ENCODER_1_DT=PORTD
+		DDR_ENCODER_1_DT=DDRD
+	endif
+endif
+
+ifeq ($(findstring B, ${ENCODER_1_CLK}), B)
+	PORT_ENCODER_1_CLK=PORTB
+	DDR_ENCODER_1_CLK=DDRB
+else
+	ifeq ($(findstring C, ${ENCODER_1_CLK}), C)
+		PORT_ENCODER_1_CLK=PORTC
+		DDR_ENCODER_1_CLK=DDRC
+	else
+		PORT_ENCODER_1_CLK=PORTD
+		DDR_ENCODER_1_CLK=DDRD
+	endif
+endif
+
+ifeq ($(findstring B, ${ENCODER_2_DT}), B)
+	PORT_ENCODER_2_DT=PORTB
+	DDR_ENCODER_2_DT=DDRB
+else
+	ifeq ($(findstring C, ${ENCODER_2_DT}), C)
+		PORT_ENCODER_2_DT=PORTC
+		DDR_ENCODER_2_DT=DDRC
+	else
+		PORT_ENCODER_2_DT=PORTD
+		DDR_ENCODER_2_DT=DDRD
+	endif
+endif
+
+ifeq ($(findstring B, ${ENCODER_2_CLK}), B)
+	PORT_ENCODER_2_CLK=PORTB
+	DDR_ENCODER_2_CLK=DDRB
+else
+	ifeq ($(findstring C, ${ENCODER_2_CLK}), C)
+		PORT_ENCODER_2_CLK=PORTC
+		DDR_ENCODER_2_CLK=DDRC
+	else
+		PORT_ENCODER_2_CLK=PORTD
+		DDR_ENCODER_2_CLK=DDRD
+	endif
+endif
+
+ifeq ($(findstring B, ${SPEAKER}), B)
+	PORT_SPEAKER=PORTB
+	DDR_SPEAKER=DDRB
+else
+	ifeq ($(findstring C, ${SPEAKER}), C)
+		PORT_SPEAKER=PORTC
+		DDR_SPEAKER=DDRC
+	else
+		PORT_SPEAKER=PORTD
+		DDR_SPEAKER=DDRD
+	endif
+endif
+
+ifeq ($(findstring B, ${STEPPER_PA}), B)
+	PORT_STEPPER_PA=PORTB
+	DDR_STEPPER_PA=DDRB
+else
+	ifeq ($(findstring C, ${STEPPER_PA}), C)
+		PORT_STEPPER_PA=PORTC
+		DDR_STEPPER_PA=DDRC
+	else
+		PORT_STEPPER_PA=PORTD
+		DDR_STEPPER_PA=DDRD
+	endif
+endif
+
+ifeq ($(findstring B, ${STEPPER_PB}), B)
+	PORT_STEPPER_PB=PORTB
+	DDR_STEPPER_PB=DDRB
+else
+	ifeq ($(findstring C, ${STEPPER_PB}), C)
+		PORT_STEPPER_PB=PORTC
+		DDR_STEPPER_PB=DDRC
+	else
+		PORT_STEPPER_PB=PORTD
+		DDR_STEPPER_PB=DDRD
+	endif
+endif
+
+ifeq ($(findstring B, ${STEPPER_NA}), B)
+	PORT_STEPPER_NA=PORTB
+	DDR_STEPPER_NA=DDRB
+else
+	ifeq ($(findstring C, ${STEPPER_NA}), C)
+		PORT_STEPPER_NA=PORTC
+		DDR_STEPPER_NA=DDRC
+	else
+		PORT_STEPPER_NA=PORTD
+		DDR_STEPPER_NA=DDRD
+	endif
+endif
+
+ifeq ($(findstring B, ${STEPPER_NB}), B)
+	PORT_STEPPER_NB=PORTB
+	DDR_STEPPER_NB=DDRB
+else
+	ifeq ($(findstring C, ${STEPPER_NB}), C)
+		PORT_STEPPER_NB=PORTC
+		DDR_STEPPER_NB=DDRC
+	else
+		PORT_STEPPER_NB=PORTD
+		DDR_STEPPER_NB=DDRD
+	endif
+endif
+
+ifeq ($(findstring B, ${TUMBLER_1}), B)
+	PORT_TUMBLER_1=PORTB
+	DDR_TUMBLER_1=DDRB
+else
+	ifeq ($(findstring C, ${TUMBLER_1}), C)
+		PORT_TUMBLER_1=PORTC
+		DDR_TUMBLER_1=DDRC
+	else
+		PORT_TUMBLER_1=PORTD
+		DDR_TUMBLER_1=DDRD
+	endif
+endif
+
+ifeq ($(findstring B, ${TUMBLER_2}), B)
+	PORT_TUMBLER_2=PORTB
+	DDR_TUMBLER_2=DDRB
+else
+	ifeq ($(findstring C, ${TUMBLER_2}), C)
+		PORT_TUMBLER_2=PORTC
+		DDR_TUMBLER_2=DDRC
+	else
+		PORT_TUMBLER_2=PORTD
+		DDR_TUMBLER_2=DDRD
+	endif
+endif
+
+ifeq ($(findstring B, ${TUMBLER_3}), B)
+	PORT_TUMBLER_3=PORTB
+	DDR_TUMBLER_3=DDRB
+else
+	ifeq ($(findstring C, ${TUMBLER_3}), C)
+		PORT_TUMBLER_3=PORTC
+		DDR_TUMBLER_3=DDRC
+	else
+		PORT_TUMBLER_3=PORTD
+		DDR_TUMBLER_3=DDRD
+	endif
+endif
+
+ifeq ($(findstring B, ${LED_1_R}), B)
+	PORT_LED_1_R=PORTB
+	DDR_LED_1_R=DDRB
+else
+	ifeq ($(findstring C, ${LED_1_R}), C)
+		PORT_LED_1_R=PORTC
+		DDR_LED_1_R=DDRC
+	else
+		PORT_LED_1_R=PORTD
+		DDR_LED_1_R=DDRD
+	endif
+endif
+
+ifeq ($(findstring B, ${LED_1_Y}), B)
+	PORT_LED_1_Y=PORTB
+	DDR_LED_1_Y=DDRB
+else
+	ifeq ($(findstring C, ${LED_1_Y}), C)
+		PORT_LED_1_Y=PORTC
+		DDR_LED_1_Y=DDRC
+	else
+		PORT_LED_1_Y=PORTD
+		DDR_LED_1_Y=DDRD
+	endif
+endif
+
+ifeq ($(findstring B, ${LED_1_G}), B)
+	PORT_LED_1_G=PORTB
+	DDR_LED_1_G=DDRB
+else
+	ifeq ($(findstring C, ${LED_1_G}), C)
+		PORT_LED_1_G=PORTC
+		DDR_LED_1_G=DDRC
+	else
+		PORT_LED_1_G=PORTD
+		DDR_LED_1_G=DDRD
+	endif
+endif
+
+ifeq ($(findstring B, ${LED_2_R}), B)
+	PORT_LED_2_R=PORTB
+	DDR_LED_2_R=DDRB
+else
+	ifeq ($(findstring C, ${LED_2_R}), C)
+		PORT_LED_2_R=PORTC
+		DDR_LED_2_R=DDRC
+	else
+		PORT_LED_2_R=PORTD
+		DDR_LED_2_R=DDRD
+	endif
+endif
+
+ifeq ($(findstring B, ${LED_2_Y}), B)
+	PORT_LED_2_Y=PORTB
+	DDR_LED_2_Y=DDRB
+else
+	ifeq ($(findstring C, ${LED_2_Y}), C)
+		PORT_LED_2_Y=PORTC
+		DDR_LED_2_Y=DDRC
+	else
+		PORT_LED_2_Y=PORTD
+		DDR_LED_2_Y=DDRD
+	endif
+endif
+
+ifeq ($(findstring B, ${LED_2_G}), B)
+	PORT_LED_2_G=PORTB
+	DDR_LED_2_G=DDRB
+else
+	ifeq ($(findstring C, ${LED_2_G}), C)
+		PORT_LED_2_G=PORTC
+		DDR_LED_2_G=DDRC
+	else
+		PORT_LED_2_G=PORTD
+		DDR_LED_2_G=DDRD
+	endif
+endif
+
+ifeq ($(findstring B, ${LED_3_R}), B)
+	PORT_LED_3_R=PORTB
+	DDR_LED_3_R=DDRB
+else
+	ifeq ($(findstring C, ${LED_3_R}), C)
+		PORT_LED_3_R=PORTC
+		DDR_LED_3_R=DDRC
+	else
+		PORT_LED_3_R=PORTD
+		DDR_LED_3_R=DDRD
+	endif
+endif
+
+ifeq ($(findstring B, ${LED_3_Y}), B)
+	PORT_LED_3_Y=PORTB
+	DDR_LED_3_Y=DDRB
+else
+	ifeq ($(findstring C, ${LED_3_Y}), C)
+		PORT_LED_3_Y=PORTC
+		DDR_LED_3_Y=DDRC
+	else
+		PORT_LED_3_Y=PORTD
+		DDR_LED_3_Y=DDRD
+	endif
+endif
+
+ifeq ($(findstring B, ${LED_3_G}), B)
+	PORT_LED_3_G=PORTB
+	DDR_LED_3_G=DDRB
+else
+	ifeq ($(findstring C, ${LED_3_G}), C)
+		PORT_LED_3_G=PORTC
+		DDR_LED_3_G=DDRC
+	else
+		PORT_LED_3_G=PORTD
+		DDR_LED_3_G=DDRD
+	endif
+endif
+
+ifeq ($(findstring B, ${LCD_SDA}), B)
+	PORT_LCD_SDA=PORTB
+	DDR_LCD_SDA=DDRB
+else
+	ifeq ($(findstring C, ${LCD_SDA}), C)
+		PORT_LCD_SDA=PORTC
+		DDR_LCD_SDA=DDRC
+	else
+		PORT_LCD_SDA=PORTD
+		DDR_LCD_SDA=DDRD
+	endif
+endif
+
+ifeq ($(findstring B, ${LCD_SCL}), B)
+	PORT_LCD_SCL=PORTB
+	DDR_LCD_SCL=DDRB
+else
+	ifeq ($(findstring C, ${LCD_SCL}), C)
+		PORT_LCD_SCL=PORTC
+		DDR_LCD_SCL=DDRC
+	else
+		PORT_LCD_SCL=PORTD
+		DDR_LCD_SCL=DDRD
+	endif
+endif
+
+ifeq ($(findstring B, ${KEY_R1}), B)
+	PORT_KEY_R1=PORTB
+	DDR_KEY_R1=DDRB
+else
+	ifeq ($(findstring C, ${KEY_R1}), C)
+		PORT_KEY_R1=PORTC
+		DDR_KEY_R1=DDRC
+	else
+		PORT_KEY_R1=PORTD
+		DDR_KEY_R1=DDRD
+	endif
+endif
+
+ifeq ($(findstring B, ${KEY_R2}), B)
+	PORT_KEY_R2=PORTB
+	DDR_KEY_R2=DDRB
+else
+	ifeq ($(findstring C, ${KEY_R2}), C)
+		PORT_KEY_R2=PORTC
+		DDR_KEY_R2=DDRC
+	else
+		PORT_KEY_R2=PORTD
+		DDR_KEY_R2=DDRD
+	endif
+endif
+
+ifeq ($(findstring B, ${KEY_R3}), B)
+	PORT_KEY_R3=PORTB
+	DDR_KEY_R3=DDRB
+else
+	ifeq ($(findstring C, ${KEY_R3}), C)
+		PORT_KEY_R3=PORTC
+		DDR_KEY_R3=DDRC
+	else
+		PORT_KEY_R3=PORTD
+		DDR_KEY_R3=DDRD
+	endif
+endif
+
+ifeq ($(findstring B, ${KEY_R4}), B)
+	PORT_KEY_R4=PORTB
+	DDR_KEY_R4=DDRB
+else
+	ifeq ($(findstring C, ${KEY_R4}), C)
+		PORT_KEY_R4=PORTC
+		DDR_KEY_R4=DDRC
+	else
+		PORT_KEY_R4=PORTD
+		DDR_KEY_R4=DDRD
+	endif
+endif
+
+ifeq ($(findstring B, ${KEY_C1}), B)
+	PORT_KEY_C1=PORTB
+	DDR_KEY_C1=DDRB
+else
+	ifeq ($(findstring C, ${KEY_C1}), C)
+		PORT_KEY_C1=PORTC
+		DDR_KEY_C1=DDRC
+	else
+		PORT_KEY_C1=PORTD
+		DDR_KEY_C1=DDRD
+	endif
+endif
+
+ifeq ($(findstring B, ${KEY_C2}), B)
+	PORT_KEY_C2=PORTB
+	DDR_KEY_C2=DDRB
+else
+	ifeq ($(findstring C, ${KEY_C2}), C)
+		PORT_KEY_C2=PORTC
+		DDR_KEY_C2=DDRC
+	else
+		PORT_KEY_C2=PORTD
+		DDR_KEY_C2=DDRD
+	endif
+endif
+
+ifeq ($(findstring B, ${KEY_C3}), B)
+	PORT_KEY_C3=PORTB
+	DDR_KEY_C3=DDRB
+else
+	ifeq ($(findstring C, ${KEY_C3}), C)
+		PORT_KEY_C3=PORTC
+		DDR_KEY_C3=DDRC
+	else
+		PORT_KEY_C3=PORTD
+		DDR_KEY_C3=DDRD
+	endif
+endif
+
+CFLAGS_station= -std=c99 -Wall -g -Os -mmcu=${STATION_BOARD} -DF_CPU=${F_CPU} \
+		-DENCODER_1_DT=P${ENCODER_1_DT} -DPORT_ENCODER_1_DT=${PORT_ENCODER_1_DT} -DDDR_ENCODER_1_DT=${DDR_ENCODER_1_DT}\
+		-DENCODER_1_CLK=P${ENCODER_1_CLK} -DPORT_ENCODER_1_CLK=${PORT_ENCODER_1_CLK} -DDDR_ENCODER_1_CLK=${DDR_ENCODER_1_CLK}\
+		-DENCODER_2_DT=P${ENCODER_2_DT} -DPORT_ENCODER_2_DT=${PORT_ENCODER_2_DT} -DDDR_ENCODER_2_DT=${DDR_ENCODER_2_DT}\
+		-DENCODER_2_CLK=P${ENCODER_2_CLK} -DPORT_ENCODER_2_CLK=${PORT_ENCODER_2_CLK} -DDDR_ENCODER_2_CLK=${DDR_ENCODER_2_CLK}\
+		-DENCODER_3_DT=P${ENCODER_3_DT} -DPORT_ENCODER_3_DT=${PORT_ENCODER_3_DT} -DDDR_ENCODER_3_DT=${DDR_ENCODER_3_DT}\
+		-DENCODER_3_CLK=P${ENCODER_3_CLK} -DPORT_ENCODER_3_CLK=${PORT_ENCODER_3_CLK} -DDDR_ENCODER_3_CLK=${DDR_ENCODER_3_CLK}\
+		-DSPEAKER=P${SPEAKER} -DPORT_SPEAKER=${PORT_SPEAKER} -DDDR_SPEAKER=${DDR_SPEAKER}\
+		-DSTEPPER_PA=P${STEPPER_PA} -DPORT_STEPPER_PA=${PORT_STEPPER_PA} -DDDR_STEPPER_PA=${DDR_STEPPER_PA}\
+		-DSTEPPER_PB=P${STEPPER_PB} -DPORT_STEPPER_PB=${PORT_STEPPER_PB} -DDDR_STEPPER_PB=${DDR_STEPPER_PB}\
+		-DSTEPPER_NA=P${STEPPER_NA} -DPORT_STEPPER_NA=${PORT_STEPPER_NA} -DDDR_STEPPER_NA=${DDR_STEPPER_NA}\
+		-DSTEPPER_NB=P${STEPPER_NB} -DPORT_STEPPER_NB=${PORT_STEPPER_NB} -DDDR_STEPPER_NB=${DDR_STEPPER_NB}\
+		-DTUMBLER_1=P${TUMBLER_1} -DPORT_TUMBLER_1=${PORT_TUMBLER_1} -DDDR_TUMBLER_1=${DDR_TUMBLER_1}\
+		-DTUMBLER_2=P${TUMBLER_2} -DPORT_TUMBLER_2=${PORT_TUMBLER_2} -DDDR_TUMBLER_2=${DDR_TUMBLER_2}\
+		-DTUMBLER_3=P${TUMBLER_3} -DPORT_TUMBLER_3=${PORT_TUMBLER_3} -DDDR_TUMBLER_3=${DDR_TUMBLER_3}\
+		-DLED_1_R=P${LED_1_R} -DPORT_LED_1_R=${PORT_LED_1_R} -DDDR_LED_1_R=${DDR_LED_1_R}\
+		-DLED_1_Y=P${LED_1_Y} -DPORT_LED_1_Y=${PORT_LED_1_Y} -DDDR_LED_1_Y=${DDR_LED_1_Y}\
+		-DLED_1_G=P${LED_1_G} -DPORT_LED_1_G=${PORT_LED_1_G} -DDDR_LED_1_G=${DDR_LED_1_G}\
+		-DLED_2_R=P${LED_2_R} -DPORT_LED_2_R=${PORT_LED_2_R} -DDDR_LED_2_R=${DDR_LED_2_R}\
+		-DLED_2_Y=P${LED_2_Y} -DPORT_LED_2_Y=${PORT_LED_2_Y} -DDDR_LED_2_Y=${DDR_LED_2_Y}\
+		-DLED_2_G=P${LED_2_G} -DPORT_LED_2_G=${PORT_LED_2_G} -DDDR_LED_2_G=${DDR_LED_2_G}\
+		-DLED_3_R=P${LED_3_R} -DPORT_LED_3_R=${PORT_LED_3_R} -DDDR_LED_3_R=${DDR_LED_3_R}\
+		-DLED_3_Y=P${LED_3_Y} -DPORT_LED_3_Y=${PORT_LED_3_Y} -DDDR_LED_3_Y=${DDR_LED_3_Y}\
+		-DLED_3_G=P${LED_3_G} -DPORT_LED_3_G=${PORT_LED_3_G} -DDDR_LED_3_G=${DDR_LED_3_G}
+
+		
+TARGET_station=station_board
+SRC_station=station_board.c
+
+
+CFLAGS_mobile= -std=c99 -Wall -g -Os -mmcu=${MOBILE_BOARD} -DF_CPU=${F_CPU} \
+		-DLCD_SDA=P${LCD_SDA} -DPORT_LCD_SDA=${PORT_LCD_SDA} -DDDR_LCD_SDA=${DDR_LCD_SDA}\
+		-DLCD_SCL=P${LCD_SCL} -DPORT_LCD_SCL=${PORT_LCD_SCL} -DDDR_LCD_SCL=${DDR_LCD_SCL}\
+		-DKEY_R1=P${KEY_R1} -DPORT_KEY_R1=${PORT_KEY_R1} -DDDR_KEY_R1=${DDR_KEY_R1}
+		-DKEY_R2=P${KEY_R2} -DPORT_KEY_R2=${PORT_KEY_R2} -DDDR_KEY_R2=${DDR_KEY_R2}
+		-DKEY_R3=P${KEY_R3} -DPORT_KEY_R3=${PORT_KEY_R3} -DDDR_KEY_R3=${DDR_KEY_R3}
+		-DKEY_R4=P${KEY_R4} -DPORT_KEY_R4=${PORT_KEY_R4} -DDDR_KEY_R4=${DDR_KEY_R4}
+		-DKEY_C1=P${KEY_C1} -DPORT_KEY_C1=${PORT_KEY_C1} -DDDR_KEY_C1=${DDR_KEY_C1}
+		-DKEY_C2=P${KEY_C2} -DPORT_KEY_C2=${PORT_KEY_C2} -DDDR_KEY_C2=${DDR_KEY_C2}
+		-DKEY_C3=P${KEY_C3} -DPORT_KEY_C3=${PORT_KEY_C3} -DDDR_KEY_C3=${DDR_KEY_C3}
+		
+		
+TARGET_mobile=mobile_board
+SRC_mobile=mobile_board.c
+
+all:
+	${CC} ${CFLAGS_station} -o ${TARGET_station}.bin ${SRC_SRC_station}
+	${OBJCOPY} -j .text -j .data -O ihex ${TARGET_station}.bin ${TARGET_station}.hex
+
+	${CC} ${CFLAGS_mobile} -o ${TARGET_mobile}.bin ${SRC_mobile}
+	${OBJCOPY} -j .text -j .data -O ihex ${TARGET_mobile}.bin ${TARGET_mobile}.hex
