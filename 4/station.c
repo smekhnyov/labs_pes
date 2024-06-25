@@ -2,6 +2,13 @@
 #include <avr/interrupt.h>
 #include <util/delay.h>
 #include <stdbool.h>
+#include <stdlib.h>
+#include <time.h>
+#include "lib/UART.h"
+
+bool tumbler_1_flag = false;
+bool tumbler_2_flag = false;
+bool tumbler_3_flag = false;
 
 void init()
 {
@@ -84,10 +91,77 @@ void init()
 
     // UART
     UBRRL=round(F_CPU/(16*9600-1.0)); //103
-	UCSRB=(1<<TXEN)|(1<<RXEN)|(1<<RXCIE);
-	UCSRC=(1<<URSEL)|(3<<UCSZ0);
+	UCSRB = (1<<RXEN) | (1<<TXEN);
+	UCSRC = (1<<URSEL) | (1<<UCSZ0) | (1<<UCSZ1);
 
     sei(); // Enable global interrupts
+}
+
+unsigned char* generate_random_key()
+{
+    srand(TCNT0);
+    static unsigned char number_str[5];
+    for (int i = 0; i < 4; i++)
+    {
+        number_str[i] = '0' + rand()%10;
+    }
+    number_str[4] = '\0';
+    return number_str;
+}
+
+void enter_key() {
+    unsigned char* key = generate_random_key();
+    unsigned char response;
+    unsigned char responce_accept;
+    bool received_responce = false;
+    while (!received_responce) {
+        uart_transmit_string(key);
+        response = uart_receive();
+        if (response == 'C')
+        {
+            bool received_accept = false;
+            while (!received_accept)
+            {
+                responce_accept = uart_receive();
+                if (responce_accept == 'D')
+                {
+                    received_accept = true;
+                    received_responce = true;
+                    PORT_LED_1_Y &= ~(1<<LED_1_Y);
+                    PORT_LED_1_G |= (1<<LED_1_G);
+                }
+            }
+        }
+    }
+}
+
+void mobile_connect() {
+    unsigned char request = 'A';
+    unsigned char response;
+    bool received_responce = false;
+    while (!received_responce) {
+        uart_transmit(request);
+        _delay_ms(100);
+
+        response = uart_receive();
+        if (response == 'B') {
+            received_responce = true;
+        }
+    }
+    PORT_LED_1_R &= ~(1<<LED_1_R);
+    PORT_LED_1_Y |= (1<<LED_1_Y);
+    enter_key();
+}
+
+void wait_1st_tumbler() {
+    while (true)
+    {
+        if (!(PIN_TUMBLER_1 & (1 << TUMBLER_1)))
+        {
+            tumbler_1_flag = true;
+            mobile_connect();
+        }
+    }
 }
 
 int main()
@@ -95,12 +169,8 @@ int main()
     init();
 
     PORT_LED_1_R |= (1<<LED_1_R);
-    PORT_LED_1_Y |= (1<<LED_1_Y);
-    PORT_LED_1_G |= (1<<LED_1_G);
     PORT_LED_2_R |= (1<<LED_2_R);
-    PORT_LED_2_Y |= (1<<LED_2_Y);
-    PORT_LED_2_G |= (1<<LED_2_G);
     PORT_LED_3_R |= (1<<LED_3_R);
-    PORT_LED_3_Y |= (1<<LED_3_Y);
-    PORT_LED_3_G |= (1<<LED_3_G);
+
+    wait_1st_tumbler();
 }
