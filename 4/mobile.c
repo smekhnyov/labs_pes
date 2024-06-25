@@ -2,15 +2,21 @@
 #include <avr/interrupt.h>
 #include <util/delay.h>
 #include <stdbool.h>
-#include "lcd/lcd.h"
+#include "lib/matrix_keypad.h"
+#include "lib/lcd.h"
+#include "lib/UART.h"
+
+const uint8_t row_pins[4] = {3, 2, 1, 0};
+const uint8_t col_pins[3] = {4, 3, 2};
+
 
 void init()
 {
-    DDR_LCD_SDA |= (1<<LCD_SDA);
-    PORT_LCD_SDA &= ~(1<<LCD_SDA);
+    // DDR_LCD_SDA |= (1<<LCD_SDA);
+    // PORT_LCD_SDA &= ~(1<<LCD_SDA);
 
-    DDR_LCD_SCL |= (1<<LCD_SCL);
-    PORT_LCD_SCL &= ~(1<<LCD_SCL);
+    // DDR_LCD_SCL |= (1<<LCD_SCL);
+    // PORT_LCD_SCL &= ~(1<<LCD_SCL);
 
     DDR_KEY_R1 &= ~(1<<KEY_R1);
     PORT_KEY_R1 |= (1<<KEY_R1);
@@ -34,22 +40,53 @@ void init()
     PORT_KEY_C3 |= (1<<KEY_C3);
 
     UBRRL=round(F_CPU/(16*9600-1.0));//103
-	UCSRB=(1<<RXEN)|(1<<RXCIE);
-	UCSRC=(1<<URSEL)|(3<<UCSZ0);
+	UCSRB = (1<<RXEN) | (1<<TXEN);
+	UCSRC=(1<<URSEL)|(3<<UCSZ0)|(1<<UCSZ1);
 
     sei();
+}
+
+void wait_for_connect()
+{
+    unsigned char request;
+    unsigned char response = 'B';
+    bool received_request = false;
+    while (!received_request) {
+        request = uart_receive();
+        //lcd_char(request);
+
+        if (request == 'A') {
+            received_request = true;
+            uart_transmit(response);
+            lcd_string("Initialize...");
+        }
+    }
+}
+
+void enter_key()
+{
+    char key;
+    char* request;
+    bool received_responce = false;
+    while (!received_responce) {
+        request = uart_receive_number();
+        uart_transmit('C');
+        lcd_clear();
+        lcd_string(request);
+        // key = keypad_get_key(row_pins, col_pins);
+        // if (key)
+        // {
+        //     lcd_char(key);
+        // }
+    }
 }
 
 int main()
 {
     init();
-
-    i2c_init();
-    lcd_init();
-    lcd_set_cursor(0, 0);
-    lcd_print("Hello, World!");
-    while (1)
-    {
-        // Ваш основной код
-    }
+    lcd_init(); // Инициализация LCD
+    keypad_init(row_pins, col_pins); 
+    wait_for_connect();
+    enter_key();
+    return 0;
 }
