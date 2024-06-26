@@ -61,3 +61,22 @@ void lcd_string(const char *str) {
 void lcd_char(char str) {
     lcd_data(str);
 }
+
+void lcd_set_cursor(unsigned char col, unsigned char row) {
+    unsigned char address;
+
+    // Вычисление адреса в зависимости от строки
+    switch (row) {
+        case 0: address = col; break;
+        case 1: address = 0x40 + col; break;
+        default: address = col; break;
+    }
+
+    // Установка адреса DDRAM
+    lcd_command(0x80 | address);
+}
+
+void lcd_clear(void) {
+    lcd_command(0x01); // Команда очистки экрана
+    _delay_ms(2);      // Задержка для выполнения команды
+}

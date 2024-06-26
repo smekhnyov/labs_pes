@@ -5,6 +5,7 @@
 #include "lib/matrix_keypad.h"
 #include "lib/lcd.h"
 #include "lib/UART.h"
+#include <string.h>
 
 const uint8_t row_pins[4] = {3, 2, 1, 0};
 const uint8_t col_pins[3] = {4, 3, 2};
@@ -63,9 +64,59 @@ void wait_for_connect()
     }
 }
 
-void enter_key()
+void enter_key(char* request)
 {
-    char key;
+    char password[5];
+    int index = 0;
+    bool enter_flag = false;
+    memset(password, 0, sizeof(password));
+    while (!enter_flag)
+    {
+        char key;
+        key = keypad_get_key(row_pins, col_pins);
+        if (key)
+        {
+            if (key != '#' && key != '*')
+            {
+                if (index < 4)
+                {
+                    password[index] = key;
+                    index++;
+                    lcd_char(key);
+                }
+            }
+            if (key == '#')
+            {
+                password[index] = '\0';
+                if (strcmp(request, password) == 0)
+                {
+                    uart_transmit('D');
+                    enter_flag = true;
+                }
+                else
+                {
+                    uart_transmit('E');
+                    index = 0;
+                    memset(password, 0, sizeof(password));
+                    lcd_clear();
+                    lcd_string(request);
+                    lcd_set_cursor(0,1);
+                }
+            }
+            if (key == '*')
+            {
+                index = 0;
+                memset(password, 0, sizeof(password));
+                lcd_clear();
+                lcd_string(request);
+                lcd_set_cursor(0,1);
+            }
+        }
+    }
+}
+
+void receive_key()
+{
     char* request;
     bool received_responce = false;
     while (!received_responce) {
@@ -73,11 +124,9 @@ void enter_key()
         uart_transmit('C');
         lcd_clear();
         lcd_string(request);
-        // key = keypad_get_key(row_pins, col_pins);
-        // if (key)
-        // {
-        //     lcd_char(key);
-        // }
+        lcd_set_cursor(0,1);
+        received_responce = true;
+        enter_key(request);
     }
 }
 
@@ -87,6 +136,6 @@ int main()
     lcd_init(); // Инициализация LCD
     keypad_init(row_pins, col_pins); 
     wait_for_connect();
-    enter_key();
+    receive_key();
     return 0;
 }

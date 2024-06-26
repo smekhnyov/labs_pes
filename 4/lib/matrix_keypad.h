@@ -59,9 +59,4 @@ char keypad_get_key(const uint8_t rows[], const uint8_t cols[])
     return 0;
 }
 
-void lcd_clear(void) {
-    lcd_command(0x01); // Команда очистки экрана
-    _delay_ms(2);      // Задержка для выполнения команды
-}
-
 #endif // MATRIX_KEYPAD_H
