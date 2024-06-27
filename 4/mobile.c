@@ -10,7 +10,6 @@
 const uint8_t row_pins[4] = {3, 2, 1, 0};
 const uint8_t col_pins[3] = {4, 3, 2};
 
-
 void init()
 {
     // DDR_LCD_SDA |= (1<<LCD_SDA);
@@ -66,13 +65,14 @@ void wait_for_connect()
 
 void enter_key(char* request)
 {
+    char key;
+    int try_count = 0;
     char password[5];
     int index = 0;
     bool enter_flag = false;
     memset(password, 0, sizeof(password));
     while (!enter_flag)
     {
-        char key;
         key = keypad_get_key(row_pins, col_pins);
         if (key)
         {
@@ -85,25 +85,37 @@ void enter_key(char* request)
                     lcd_char(key);
                 }
             }
-            if (key == '#')
+            else if (key == '#')
             {
+                try_count++;
                 password[index] = '\0';
-                if (strcmp(request, password) == 0)
+                uart_transmit_string(password);
+                char answer = uart_receive();
+                if (answer == 'D')
                 {
-                    uart_transmit('D');
+                    lcd_clear();
+                    lcd_set_cursor(0, 0);
+                    lcd_string("Correct!");
                     enter_flag = true;
                 }
-                else
+                else if (answer == 'E')
                 {
-                    uart_transmit('E');
+                    lcd_clear();
+                    lcd_set_cursor(0, 0);
+                    lcd_string("Incorrect!");
+                    lcd_set_cursor(0,1);
+                    lcd_string("Popitok: ");
+                    lcd_char(((3 - try_count) + '0'));
                     index = 0;
                     memset(password, 0, sizeof(password));
+                    _delay_ms(1000);
                     lcd_clear();
+                    lcd_set_cursor(0, 0);
                     lcd_string(request);
                     lcd_set_cursor(0,1);
                 }
             }
-            if (key == '*')
+            else if (key == '*')
             {
                 index = 0;
                 memset(password, 0, sizeof(password));
@@ -111,6 +123,13 @@ void enter_key(char* request)
                 lcd_string(request);
                 lcd_set_cursor(0,1);
             }
+        }
+        if (try_count > 2)
+        {
+            lcd_clear();
+            lcd_set_cursor(0, 0);
+            lcd_string("Popitok nema!");
+            enter_flag = true;
         }
     }
 }
