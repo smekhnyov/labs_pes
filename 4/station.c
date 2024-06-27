@@ -4,6 +4,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <time.h>
+#include <string.h>
 #include "lib/UART.h"
 
 bool tumbler_1_flag = false;
@@ -112,7 +113,6 @@ unsigned char* generate_random_key()
 void enter_key() {
     unsigned char* key = generate_random_key();
     unsigned char response;
-    unsigned char responce_accept;
     bool received_responce = false;
     while (!received_responce) {
         uart_transmit_string(key);
@@ -122,13 +122,21 @@ void enter_key() {
             bool received_accept = false;
             while (!received_accept)
             {
-                responce_accept = uart_receive();
-                if (responce_accept == 'D')
+                char* responce_password = uart_receive_number();
+                if (strcmp(responce_password, key) == 0)
                 {
+                    uart_transmit('D');
                     received_accept = true;
                     received_responce = true;
                     PORT_LED_1_Y &= ~(1<<LED_1_Y);
                     PORT_LED_1_G |= (1<<LED_1_G);
+                }
+                else
+                {
+                    uart_transmit('E');
+                    PORT_SPEAKER |= (1<<SPEAKER);
+                    _delay_ms(100);
+                    PORT_SPEAKER &= ~(1<<SPEAKER);
                 }
             }
         }
