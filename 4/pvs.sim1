@@ -72,8 +72,6 @@
 
 <item itemtype="Node" CircId="Node-506" mainComp="false" Pos="588,628" />
 
-<item itemtype="Connector" uid="connector-507" startpinid="mega8-2-PORTD0" endpinid="mega8-1-PORTD1" pointList="1096,428,624,428" />
-
 <item itemtype="Connector" uid="connector-508" startpinid="KeyPad-23-Pin0" endpinid="mega8-2-PORTC3" pointList="1236,436,1144,436" />
 
 <item itemtype="Connector" uid="connector-509" startpinid="KeyPad-23-Pin2" endpinid="mega8-2-PORTC1" pointList="1236,468,1188,468,1188,452,1144,452" />
@@ -89,8 +87,6 @@
 <item itemtype="Connector" uid="connector-514" startpinid="KeyPad-23-Pin6" endpinid="mega8-2-PORTB2" pointList="1284,500,1284,516,1144,516" />
 
 <item itemtype="Connector" uid="connector-515" startpinid="Stepper-21-PinA1" endpinid="mega8-1-PORTC6" pointList="672,364,672,412,624,412" />
-
-<item itemtype="Connector" uid="connector-516" startpinid="Stepper-21-PinB1" endpinid="mega8-1-PORTD0" pointList="688,364,688,420,624,420" />
 
 <item itemtype="Connector" uid="connector-517" startpinid="Stepper-21-PinA2" endpinid="mega8-1-PORTD2" pointList="720,364,720,436,624,436" />
 
@@ -217,5 +213,11 @@
 <item itemtype="Connector" uid="connector-578" startpinid="Hd44780-438-dataPin6" endpinid="mega8-2-PORTB7" pointList="968,404,968,492,1096,492" />
 
 <item itemtype="Connector" uid="connector-579" startpinid="Hd44780-438-dataPin7" endpinid="mega8-2-PORTB6" pointList="976,404,976,484,1096,484" />
+
+<item itemtype="Connector" uid="Connector-580" startpinid="Stepper-21-PinB1" endpinid="mega8-1-PORTB2" pointList="688,364,688,388,564,388,564,508,576,508" />
+
+<item itemtype="Connector" uid="Connector-581" startpinid="mega8-1-PORTD0" endpinid="mega8-2-PORTD1" pointList="624,420,864,420,864,436,1096,436" />
+
+<item itemtype="Connector" uid="connector-507" startpinid="mega8-2-PORTD0" endpinid="mega8-1-PORTD1" pointList="1096,428,624,428" />
 
 </circuit>
