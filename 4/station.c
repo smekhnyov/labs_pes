@@ -14,34 +14,10 @@ bool tumbler_3_flag = false;
 volatile int16_t encoder_position = 0;
 volatile int16_t stepper_position = 0;
 
-ISR(INT0_vect) {
-    // Чтение состояния выводов PD2 (A) и PD3 (B)
-    uint8_t a = PIN_ENCODER_1_DT & (1 << ENCODER_1_DT);
-    uint8_t b = PIN_ENCODER_1_CLK & (1 << ENCODER_1_CLK);
-
-    // Определение направления вращения
-    if (a == b) {
-        encoder_position++;
-    } else {
-        encoder_position--;
-    }
-}
-
-ISR(INT1_vect) {
-    // Чтение состояния выводов PD2 (A) и PD3 (B)
-    uint8_t a = PIN_ENCODER_1_DT & (1 << ENCODER_1_DT);
-    uint8_t b = PIN_ENCODER_1_CLK & (1 << ENCODER_1_CLK);
-
-    // Определение направления вращения
-    if (a != b) {
-        encoder_position++;
-    } else {
-        encoder_position--;
-    }
-}
-
 void init()
 {
+    srand(time(TCNT0));
+
     // STEPPER
     DDR_STEPPER_PA |= (1<<STEPPER_PA); // выход
     PORT_STEPPER_PA &= ~(1<<STEPPER_PA); // выключен
@@ -123,13 +99,12 @@ void init()
     UBRRL=round(F_CPU/(16*9600-1.0)); //103
 	UCSRB = (1<<RXEN) | (1<<TXEN);
 	UCSRC = (1<<URSEL) | (1<<UCSZ0) | (1<<UCSZ1);
-
+    
     sei(); // Enable global interrupts
 }
 
 unsigned char* generate_random_key()
 {
-    srand(TCNT0);
     static unsigned char number_str[5];
     for (int i = 0; i < 4; i++)
     {
@@ -203,11 +178,11 @@ void wait_1st_tumbler() {
 
 void stepper_step(int direction) {
     static uint8_t step = 0;
-    const uint8_t step_sequence[4] = {
-        (1 << STEPPER_PA | 0 << STEPPER_PB | 0 << STEPPER_NA | 0 << STEPPER_NB),
-        (0 << STEPPER_PA | 1 << STEPPER_PB | 0 << STEPPER_NA | 0 << STEPPER_NB),
-        (0 << STEPPER_PA | 0 << STEPPER_PB | 1 << STEPPER_NA | 0 << STEPPER_NB),
-        (0 << STEPPER_PA | 0 << STEPPER_PB | 0 << STEPPER_NA | 1 << STEPPER_NB)
+    const uint8_t step_sequence[4][4] = {
+        {1, 0, 0, 0},
+        {0, 1, 0, 0},
+        {0, 0, 1, 0},
+        {0, 0, 0, 1}
     };
 
     // Направление вращения
@@ -218,49 +193,57 @@ void stepper_step(int direction) {
     }
 
     // Выдача сигнала на шаговый драйвер
-    PORTC = (PORTC & 0xC3) | step_sequence[step];
+    if (step_sequence[step][0]) PORT_STEPPER_PA |= (1<<PIN_STEPPER_PA); else PORT_STEPPER_PA &= ~(1<<PIN_STEPPER_PA);
+    if (step_sequence[step][1]) PORT_STEPPER_PB |= (1<<PIN_STEPPER_PB); else PORT_STEPPER_PB &= ~(1<<PIN_STEPPER_PB);
+    if (step_sequence[step][2]) PORT_STEPPER_NA |= (1<<PIN_STEPPER_NA); else PORT_STEPPER_NA &= ~(1<<PIN_STEPPER_NA);
+    if (step_sequence[step][3]) PORT_STEPPER_NB |= (1<<PIN_STEPPER_NB); else PORT_STEPPER_NB &= ~(1<<PIN_STEPPER_NB);
 }
-
-// void stepper_step(int direction)
-// {
-//     static uint8_t step = 0;
-//     if (direction > 0) {
-//         step = (step + 1) % 4;
-//     } else if (direction < 0) {
-//         step = (step + 3) % 4;
-//     }
-
-//     switch (step)
-//     {
-//     case 0:
-//         PORT_STEPPER_PA ^= (1<<STEPPER_PA);
-//         PORT_STEPPER_PA &= ~(1<<STEPPER_PA);
-//         break;
-//     case 1:
-//         PORT_STEPPER_PB ^= (1<<STEPPER_PB);
-//         PORT_STEPPER_PB &= ~(1<<STEPPER_PB);
-//     case 2:
-//         PORT_STEPPER_NA ^= (1<<STEPPER_NA);
-//         PORT_STEPPER_NA &= ~(1<<STEPPER_NA);
-//     case 3:
-//         PORT_STEPPER_NB ^= (1<<STEPPER_NB);
-//         PORT_STEPPER_NB &= ~(1<<STEPPER_NB);
-//     default:
-//         break;
-//     }
-// }
 
 int generate_random_angle()
 {
-    srand(TCNT0);
     int angle = rand()%360;
     return angle;
 }
 
+uint8_t read_gray_code_from_encoder() 
+{ 
+ uint8_t val=0; 
+
+  if(!bit_is_clear(PIN_ENCODER_1_DT, ENCODER_1_DT)) 
+	val |= (1<<1); 
+
+  if(!bit_is_clear(PIN_ENCODER_1_CLK, ENCODER_1_CLK)) 
+	val |= (1<<0); 
+
+  return val; 
+}
+
 void set_settings() {
     int angle = generate_random_angle();
+    uint8_t current_pos = 0, last_pos = 0;
+    current_pos = read_gray_code_from_encoder(); 
     while (PIN_TUMBLER_3 & (1 << TUMBLER_3))
     {
+        last_pos = read_gray_code_from_encoder();
+
+        if(current_pos != last_pos) 
+	    { 
+		    if((current_pos==3 && last_pos==1) || (current_pos==0 && last_pos==2)) 
+		    { 
+                encoder_position++;
+                uart_transmit('+');
+		    } 
+		    else if((current_pos==2 && last_pos==0) || (current_pos==1 && last_pos==3)) 
+		    { 
+                encoder_position--;
+				uart_transmit('-');
+		    } 
+
+		   current_pos = last_pos; 
+	    } 
+
+	   _delay_ms(1); 
+
         // Приведение шагового двигателя в положение энкодера
         if (encoder_position > stepper_position) {
             stepper_step(1);  // Шаг вперед
@@ -269,9 +252,6 @@ void set_settings() {
             stepper_step(-1); // Шаг назад
             stepper_position--;
         }
-
-        // Небольшая задержка для плавного управления двигателем
-        _delay_ms(10);
     }
 }
 
@@ -294,6 +274,6 @@ int main()
     PORT_LED_2_R |= (1<<LED_2_R);
     PORT_LED_3_R |= (1<<LED_3_R);
 
-    // wait_1st_tumbler();
+    //wait_1st_tumbler();
     wait_2nd_tumbler();
 }
