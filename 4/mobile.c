@@ -149,6 +149,11 @@ void receive_key()
     }
 }
 
+void get_settings()
+{
+
+}
+
 int main()
 {
     init();
@@ -156,5 +161,6 @@ int main()
     keypad_init(row_pins, col_pins); 
     wait_for_connect();
     receive_key();
+    get_settings();
     return 0;
 }
