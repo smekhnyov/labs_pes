@@ -82,7 +82,7 @@ void enter_key(char* request)
                 {
                     password[index] = key;
                     index++;
-                    lcd_char(key);
+                    lcd_char('*');
                 }
             }
             else if (key == '#')
