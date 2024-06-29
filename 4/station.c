@@ -274,6 +274,6 @@ int main()
     PORT_LED_2_R |= (1<<LED_2_R);
     PORT_LED_3_R |= (1<<LED_3_R);
 
-    //wait_1st_tumbler();
+    wait_1st_tumbler();
     wait_2nd_tumbler();
 }
