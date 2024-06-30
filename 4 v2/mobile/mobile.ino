@@ -54,29 +54,38 @@ char waitChar()
   return receivedData;
 }
 
-void enterPassword(int correctPassword) {
+void enterPassword(int correctPassword)
+{
   int enteredPassword = 0;
   int incorrectAttempts = 0;
   bool isCorrect = false;
 
-  while (!isCorrect) {
+  while (!isCorrect)
+  {
     char key = keypad.getKey();
 
-    if (key != NO_KEY) {
-      if (key != '#' && key != '*') {
+    if (key != NO_KEY)
+    {
+      if (key != '#' && key != '*')
+      {
         lcd.print('*');
         enteredPassword = enteredPassword * 10 + (key - '0');
-      } else if (key == '#') {
+      }
+      else if (key == '#')
+      {
         incorrectAttempts++;
         Serial.print(enteredPassword);
         delay(100);
         char response = waitChar();
-        if (response == 'D') {
+        if (response == 'D')
+        {
           lcd.clear();
           lcd.setCursor(0, 0);
           lcd.print("Correct!");
           isCorrect = true;
-        } else if (response == 'E') {
+        }
+        else if (response == 'E')
+        {
           enteredPassword = 0;
           lcd.clear();
           lcd.setCursor(0, 0);
@@ -90,7 +99,9 @@ void enterPassword(int correctPassword) {
           lcd.print(correctPassword);
           lcd.setCursor(0, 1);
         }
-      } else if (key == '*') {
+      }
+      else if (key == '*')
+      {
         enteredPassword = 0;
         lcd.clear();
         lcd.setCursor(0, 0);
@@ -99,7 +110,8 @@ void enterPassword(int correctPassword) {
       }
     }
 
-    if (incorrectAttempts > 2 && !isCorrect) {
+    if (incorrectAttempts > 2 && !isCorrect)
+    {
       lcd.clear();
       lcd.setCursor(0, 0);
       lcd.print("Popitok nema!");
@@ -126,16 +138,13 @@ void receive_password()
 
 void loop()
 {
-  if (Serial.available() > 0)
+  char command = waitChar();
+  switch (command)
   {
-    char command = waitChar();
-    switch (command)
-    {
-    case 'A':
-      Serial.print('B');
-      lcd.print("Initialize...");
-      delay(500);
-      receive_password();      
-    }
+  case 'A':
+    Serial.print('B');
+    lcd.print("Initialize...");
+    delay(500);
+    receive_password();
   }
 }

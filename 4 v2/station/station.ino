@@ -1,5 +1,6 @@
 #include <GyverStepper.h>
 #include <time.h>
+#include <Encoder.h>
 
 #define LED_1_R 18
 #define LED_1_Y 17
@@ -31,7 +32,8 @@ bool tumbler_1_flag = false;
 bool tumbler_2_flag = false;
 bool tumbler_3_flag = false;
 
-GStepper<STEPPER4WIRE> stepper(32, STEPPER_NB, STEPPER_PB, STEPPER_NA, STEPPER_PA);
+GStepper<STEPPER4WIRE> stepper(360, STEPPER_NB, STEPPER_PB, STEPPER_NA, STEPPER_PA);
+Encoder enc1(ENCODER_1_DT, ENCODER_1_CLK);
 
 void setup()
 {
@@ -41,7 +43,9 @@ void setup()
 
   pinMode(SPEAKER, OUTPUT);
 
-  // stepper.setSpeed(32);
+  stepper.setRunMode(FOLLOW_POS);
+  stepper.setSpeed(360);
+  // stepper.autoPower(true);
 
   pinMode(LED_1_R, OUTPUT);
   pinMode(LED_1_Y, OUTPUT);
@@ -141,11 +145,43 @@ void wait_1st_tumbler()
   }
 }
 
+long enc1_position = -999;
+
 void wait_2nd_tumbler()
 {
-  while (true)
+  // while (tumbler_2_flag)
+  // {
+  //   long newPosition = enc1.read();
+  //   if (newPosition < enc1_position)
+  //   {
+  //     enc1_position = newPosition;
+  //     Serial.print(enc1_position);
+  //     stepper.setTarget(-1);
+  //     stepper.tick();
+  //   }
+  //   else if (newPosition > enc1_position)
+  //   {
+  //     enc1_position = newPosition;
+  //     Serial.print(enc1_position);
+  //     stepper.setTarget(1);
+  //     stepper.tick();
+  //   }
+  // }
+  while (!stepper.tick())
   {
+    stepper.setTarget(1);
   }
+  delay(300);
+  while (!stepper.tick())
+  {
+    stepper.setTarget(100);
+  }
+  delay(300);
+  while (!stepper.tick())
+  {
+    stepper.setTarget(-100);
+  }
+  delay(300);
 }
 
 void loop()
@@ -158,7 +194,7 @@ void loop()
   if (!digitalRead(TUMBLER_2) && tumbler_1_flag)
   {
     tumbler_2_flag = true;
-    // wait_2nd_tumbler();
+    wait_2nd_tumbler();
   }
   // stepper.runSpeed();
 }
