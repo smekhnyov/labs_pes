@@ -1,5 +1,4 @@
 #include <GyverStepper.h>
-#include <SoftwareSerial.h>
 #include <time.h>
 
 #define LED_1_R 18
@@ -32,7 +31,7 @@ bool tumbler_1_flag = false;
 bool tumbler_2_flag = false;
 bool tumbler_3_flag = false;
 
-GStepper<STEPPER2WIRE> stepper(32, STEPPER_NB, STEPPER_PB, STEPPER_NA, STEPPER_PA);
+GStepper<STEPPER4WIRE> stepper(32, STEPPER_NB, STEPPER_PB, STEPPER_NA, STEPPER_PA);
 
 void setup()
 {
@@ -42,12 +41,7 @@ void setup()
 
   pinMode(SPEAKER, OUTPUT);
 
-  pinMode(ENCODER_1_DT, INPUT_PULLUP);
-  pinMode(ENCODER_1_CLK, INPUT_PULLUP);
-  pinMode(ENCODER_2_DT, INPUT_PULLUP);
-  pinMode(ENCODER_2_CLK, INPUT_PULLUP);
-
-  stepper.setSpeed(300);
+  // stepper.setSpeed(32);
 
   pinMode(LED_1_R, OUTPUT);
   pinMode(LED_1_Y, OUTPUT);
@@ -161,10 +155,10 @@ void loop()
     tumbler_1_flag = true;
     wait_1st_tumbler();
   }
-  if (!digitalRead(TUMBLER_2))
+  if (!digitalRead(TUMBLER_2) && tumbler_1_flag)
   {
     tumbler_2_flag = true;
-    wait_2nd_tumbler();
+    // wait_2nd_tumbler();
   }
   // stepper.runSpeed();
 }

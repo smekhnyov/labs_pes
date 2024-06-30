@@ -64,7 +64,7 @@ void enterPassword(int correctPassword) {
 
     if (key != NO_KEY) {
       if (key != '#' && key != '*') {
-        lcd.print(key);
+        lcd.print('*');
         enteredPassword = enteredPassword * 10 + (key - '0');
       } else if (key == '#') {
         incorrectAttempts++;
@@ -135,7 +135,7 @@ void loop()
       Serial.print('B');
       lcd.print("Initialize...");
       delay(500);
-      receive_password();
+      receive_password();      
     }
   }
 }
