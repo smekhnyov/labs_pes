@@ -1,6 +1,6 @@
 #include <GyverStepper.h>
 #include <time.h>
-#include <Encoder.h>
+#include <GyverEncoder.h>
 
 #define LED_1_R 18
 #define LED_1_Y 17
@@ -33,19 +33,21 @@ bool tumbler_2_flag = false;
 bool tumbler_3_flag = false;
 
 GStepper<STEPPER4WIRE> stepper(360, STEPPER_NB, STEPPER_PB, STEPPER_NA, STEPPER_PA);
-Encoder enc1(ENCODER_1_DT, ENCODER_1_CLK);
+Encoder enc1(ENCODER_1_CLK, ENCODER_1_DT);
 
 void setup()
 {
-  pinMode(TUMBLER_1, INPUT);
-  pinMode(TUMBLER_2, INPUT);
-  pinMode(TUMBLER_3, INPUT);
+  pinMode(TUMBLER_1, INPUT_PULLUP);
+  pinMode(TUMBLER_2, INPUT_PULLUP);
+  pinMode(TUMBLER_3, INPUT_PULLUP);
 
   pinMode(SPEAKER, OUTPUT);
 
-  stepper.setRunMode(FOLLOW_POS);
+  enc1.setType(TYPE1);
+  enc1.setDirection(REVERSE);
+
   stepper.setSpeed(360);
-  // stepper.autoPower(true);
+  stepper.setCurrentDeg(0);
 
   pinMode(LED_1_R, OUTPUT);
   pinMode(LED_1_Y, OUTPUT);
@@ -145,43 +147,25 @@ void wait_1st_tumbler()
   }
 }
 
-long enc1_position = -999;
+long stepper_position = 0;
 
 void wait_2nd_tumbler()
 {
-  // while (tumbler_2_flag)
-  // {
-  //   long newPosition = enc1.read();
-  //   if (newPosition < enc1_position)
-  //   {
-  //     enc1_position = newPosition;
-  //     Serial.print(enc1_position);
-  //     stepper.setTarget(-1);
-  //     stepper.tick();
-  //   }
-  //   else if (newPosition > enc1_position)
-  //   {
-  //     enc1_position = newPosition;
-  //     Serial.print(enc1_position);
-  //     stepper.setTarget(1);
-  //     stepper.tick();
-  //   }
-  // }
-  while (!stepper.tick())
+  while (tumbler_2_flag && !stepper.tick())
   {
-    stepper.setTarget(1);
+    enc1.tick();
+  
+    if (enc1.isRight()) {
+      stepper_position++;
+      stepper.setTarget(stepper_position);
+    }
+    if (enc1.isLeft()) {
+      stepper_position--;а
+      stepper.setTarget(stepper_position);
+    }
+
+    stepper.tick();
   }
-  delay(300);
-  while (!stepper.tick())
-  {
-    stepper.setTarget(100);
-  }
-  delay(300);
-  while (!stepper.tick())
-  {
-    stepper.setTarget(-100);
-  }
-  delay(300);
 }
 
 void loop()
