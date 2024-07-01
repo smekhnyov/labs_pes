@@ -151,22 +151,48 @@ long stepper_position = 0;
 
 void stepper_control()
 {
+  int target = 30;
+  int zero_point = 50 - target;
+  int accuracy = zero_point * 2;
+  int last_position = stepper_position;
   char answer = waitChar();
   if (answer == 'S')
   {
+    Serial.print('P');
+    Serial.print(abs(accuracy));
     int freq = 0;
     while (tumbler_2_flag && !tumbler_3_flag)
     {
       enc1.tick();
       if (enc1.isRight()) {
+        last_position = stepper_position;
         stepper_position++;
+        if (target - stepper_position < target - last_position)
+        {
+          accuracy = accuracy + 2;
+        }
+        else
+        {
+          accuracy = accuracy - 2;
+        }
         stepper.setTarget(stepper_position);
-        Serial.print(stepper_position);
+        Serial.print('P');
+        Serial.print(abs(accuracy));
       }
       if (enc1.isLeft()) {
+        last_position = stepper_position;
         stepper_position--;
+        if (target - stepper_position < target - last_position)
+        {
+          accuracy = accuracy + 2;
+        }
+        else
+        {
+          accuracy = accuracy - 2;
+        }
         stepper.setTarget(stepper_position);
-        Serial.print(stepper_position);
+        Serial.print('P');
+        Serial.print(abs(accuracy));
       }
       stepper.tick();
   
@@ -178,7 +204,32 @@ void stepper_control()
         freq--;
       }
 
-      tumbler_3_flag = !digitalRead(TUMBLER_3);
+      if (abs(accuracy) > 100)
+      {
+        digitalWrite(LED_2_Y, HIGH);
+      }
+      else
+      {
+        digitalWrite(LED_2_Y, LOW);
+      }
+
+      if (abs(accuracy) == 100)
+      {
+        digitalWrite(LED_2_Y, LOW);
+        digitalWrite(LED_2_G, HIGH);
+      }
+      else
+      {
+        digitalWrite(LED_2_G, LOW);
+        digitalWrite(LED_2_Y, HIGH);
+      }
+      
+      
+      if (!digitalRead(TUMBLER_3))
+      {
+        tumbler_3_flag = true;
+        Serial.print('O');
+      }
     }
   }
 }
@@ -188,8 +239,8 @@ void wait_2nd_tumbler()
   if (tumbler_2_flag)
   {
     Serial.print('T');
-    delay(100);
-    Serial.print(stepper.getCurrentDeg());
+    // delay(100);
+    // Serial.print(stepper.getCurrentDeg());
     stepper_control();
   }
 }

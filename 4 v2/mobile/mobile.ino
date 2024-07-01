@@ -138,7 +138,16 @@ void receive_password()
 
 void get_settings()
 {
-  
+  char prefix = waitChar();
+  while (prefix != 'O')
+  {
+    int progress = waitInt();
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.print("Progress: ");
+    lcd.print(progress);
+    lcd.print("%");
+  }
 }
 
 void loop()
