@@ -154,6 +154,13 @@ float freq = 110;
 const float min_freq = 100;
 const float max_freq = 120;
 
+int abc(int accuracy)
+{
+    if (accuracy <= 100) return accuracy;
+    else if (accuracy > 100 && (accuracy / 100) % 2 == 1) return (((accuracy / 100) + 1)*100 - accuracy);
+    else if (accuracy > 100 && (accuracy / 100) % 2 == 0) return (accuracy - (accuracy / 100)*100);
+}
+
 void stepper_control()
 {
   int target = 30;
@@ -166,7 +173,9 @@ void stepper_control()
   if (answer == 'S')
   {
     Serial.print('P');
-    Serial.print(abs(accuracy));
+    Serial.print(abc(abs(accuracy)));
+    Serial.print('F');
+    Serial.print((freq-min_freq)/(max_freq-min_freq)*100);
     while (tumbler_2_flag && !tumbler_3_flag)
     {
       enc1.tick();
@@ -184,7 +193,7 @@ void stepper_control()
         }
         stepper.setTarget(stepper_position);
         Serial.print('P');
-        Serial.print(abs(accuracy));
+        Serial.print(abc(abs(accuracy)));
       }
       if (enc1.isLeft())
       {
@@ -200,7 +209,7 @@ void stepper_control()
         }
         stepper.setTarget(stepper_position);
         Serial.print('P');
-        Serial.print(abs(accuracy));
+        Serial.print(abc(abs(accuracy)));
       }
       stepper.tick();
 
@@ -210,18 +219,16 @@ void stepper_control()
         freq = freq + 0.1;
         Serial.print('F');
         Serial.print((freq-min_freq)/(max_freq-min_freq)*100);
-        Serial.print(freq);
       }
       if (enc2.isLeft() && freq > 100)
       {
         freq = freq - 0.1;
         Serial.print('F');
         Serial.print((freq-min_freq)/(max_freq-min_freq)*100);
-        Serial.print(freq);
       }
 
       
-      if (abs(accuracy) > 90)
+      if (abc(abs(accuracy)) > 90)
       {
         digitalWrite(LED_2_R, LOW);
         digitalWrite(LED_2_Y, HIGH);
@@ -232,7 +239,7 @@ void stepper_control()
         digitalWrite(LED_2_Y, LOW);
       }
 
-      if (abs(accuracy) == 100)
+      if (abc(abs(accuracy)) == 100)
       {
         digitalWrite(LED_2_Y, LOW);
         digitalWrite(LED_2_G, HIGH);
