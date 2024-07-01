@@ -2,20 +2,20 @@
 #include <SoftwareSerial.h>
 #include <Keypad.h>
 
-#define LCD_RS 8
-#define LCD_En 7
-#define LCD_D4 6
-#define LCD_D5 5
-#define LCD_D6 21
-#define LCD_D7 20
+#define LCD_RS PIN_PB0
+#define LCD_En PIN_PD7
+#define LCD_D4 PIN_PD6
+#define LCD_D5 PIN_PD5
+#define LCD_D6 PIN_PB7
+#define LCD_D7 PIN_PB6
 
-#define KEY_R1 17
-#define KEY_R2 16
-#define KEY_R3 15
-#define KEY_R4 14
-#define KEY_C1 12
-#define KEY_C2 11
-#define KEY_C3 10
+#define KEY_R1 PIN_PC3
+#define KEY_R2 PIN_PC2
+#define KEY_R3 PIN_PC1
+#define KEY_R4 PIN_PC0
+#define KEY_C1 PIN_PB4
+#define KEY_C2 PIN_PB3
+#define KEY_C3 PIN_PB2
 
 const byte ROWS = 4;
 const byte COLS = 3;
@@ -51,6 +51,15 @@ char waitChar()
   {
   }
   char receivedData = Serial.read();
+  return receivedData;
+}
+
+float waitFloat()
+{
+  while (Serial.available() == 0)
+  {
+  }
+  float receivedData = Serial.parseFloat();
   return receivedData;
 }
 
@@ -138,15 +147,57 @@ void receive_password()
 
 void get_settings()
 {
+  int progress;
+  int frequency;
   char prefix = waitChar();
-  while (prefix != 'O')
+  while (prefix != 'X')
   {
-    int progress = waitInt();
+    if (prefix == 'P')
+    {
+      progress = waitInt();
+    }
+    else if (prefix == 'F')
+    {
+      frequency = waitFloat();
+    }
     lcd.clear();
     lcd.setCursor(0, 0);
     lcd.print("Progress: ");
     lcd.print(progress);
     lcd.print("%");
+    lcd.setCursor(0, 1);
+    lcd.print("Frequency: ");
+    lcd.print(frequency);
+    lcd.print("%");
+    prefix = waitChar();
+  }
+  lcd.clear();
+}
+
+void display_progress_third_switch()
+{
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print("Progress: 1%");
+
+  int num_packets = waitInt();
+  Serial.print('G');
+  int received_packets = 0;
+  int progress = 0;
+
+  while (received_packets < num_packets)
+  {
+    char received_data = waitChar();
+    if (received_data > 0)
+    {
+      received_packets++;
+      progress = (received_packets * 100) / num_packets;
+      lcd.clear();
+      lcd.setCursor(0, 0);
+      lcd.print("Progress: ");
+      lcd.print(progress);
+      lcd.print("%");
+    }
   }
 }
 
@@ -163,6 +214,8 @@ void loop()
   case 'T':
     Serial.print('S');
     get_settings();
+  case 'M':
+    Serial.print('N');
+    display_progress_third_switch();
   }
-
 }

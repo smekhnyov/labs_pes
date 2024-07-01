@@ -2,35 +2,37 @@
 #include <time.h>
 #include <GyverEncoder.h>
 
-#define LED_1_R 18
-#define LED_1_Y 17
-#define LED_1_G 16
-#define LED_2_R 15
-#define LED_2_Y 14
-#define LED_2_G 13
-#define LED_3_R 12
-#define LED_3_Y 11
-#define LED_3_G 10
+#define LED_1_R PIN_PC4
+#define LED_1_Y PIN_PC3
+#define LED_1_G PIN_PC2
+#define LED_2_R PIN_PC1
+#define LED_2_Y PIN_PC0
+#define LED_2_G PIN_PB5
+#define LED_3_R PIN_PB4
+#define LED_3_Y PIN_PB3
+#define LED_3_G PIN_PB2
 
-#define ENCODER_1_DT 4
-#define ENCODER_1_CLK 20
-#define ENCODER_2_DT 5
-#define ENCODER_2_CLK 6
+#define ENCODER_1_DT PIN_PB6
+#define ENCODER_1_CLK PIN_PD4
+#define ENCODER_2_DT PIN_PD5
+#define ENCODER_2_CLK PIN_PB7
 
-#define STEPPER_PA 19
-#define STEPPER_PB 22
-#define STEPPER_NA 2
-#define STEPPER_NB 3
+#define STEPPER_PA PIN_PC5
+#define STEPPER_PB PIN_PC6
+#define STEPPER_NA PIN_PD2
+#define STEPPER_NB PIN_PD3
 
-#define TUMBLER_1 6
-#define TUMBLER_2 7
-#define TUMBLER_3 8
+#define TUMBLER_1 PIN_PD6
+#define TUMBLER_2 PIN_PD7
+#define TUMBLER_3 PIN_PB0
 
 #define SPEAKER 9
 
 bool tumbler_1_flag = false;
 bool tumbler_2_flag = false;
 bool tumbler_3_flag = false;
+
+bool flag_done = false;
 
 GStepper<STEPPER4WIRE> stepper(100, STEPPER_NB, STEPPER_PB, STEPPER_NA, STEPPER_PA);
 Encoder enc1(ENCODER_1_CLK, ENCODER_1_DT);
@@ -148,11 +150,16 @@ void wait_1st_tumbler()
 }
 
 long stepper_position = 0;
+float freq = 110;
+const float min_freq = 100;
+const float max_freq = 120;
 
 void stepper_control()
 {
   int target = 30;
-  int zero_point = 50 - target;
+  int zero_point;
+  if (target > 0) zero_point = 50 - target;
+  else zero_point = 50 + target;
   int accuracy = zero_point * 2;
   int last_position = stepper_position;
   char answer = waitChar();
@@ -160,11 +167,11 @@ void stepper_control()
   {
     Serial.print('P');
     Serial.print(abs(accuracy));
-    int freq = 0;
     while (tumbler_2_flag && !tumbler_3_flag)
     {
       enc1.tick();
-      if (enc1.isRight()) {
+      if (enc1.isRight())
+      {
         last_position = stepper_position;
         stepper_position++;
         if (target - stepper_position < target - last_position)
@@ -179,7 +186,8 @@ void stepper_control()
         Serial.print('P');
         Serial.print(abs(accuracy));
       }
-      if (enc1.isLeft()) {
+      if (enc1.isLeft())
+      {
         last_position = stepper_position;
         stepper_position--;
         if (target - stepper_position < target - last_position)
@@ -195,21 +203,32 @@ void stepper_control()
         Serial.print(abs(accuracy));
       }
       stepper.tick();
-  
+
       enc2.tick();
-      if (enc2.isRight()) {
-        freq++;
+      if (enc2.isRight() && freq < 120)
+      {
+        freq = freq + 0.1;
+        Serial.print('F');
+        Serial.print((freq-min_freq)/(max_freq-min_freq)*100);
+        Serial.print(freq);
       }
-      if (enc2.isLeft()) {
-        freq--;
+      if (enc2.isLeft() && freq > 100)
+      {
+        freq = freq - 0.1;
+        Serial.print('F');
+        Serial.print((freq-min_freq)/(max_freq-min_freq)*100);
+        Serial.print(freq);
       }
 
-      if (abs(accuracy) > 100)
+      
+      if (abs(accuracy) > 90)
       {
+        digitalWrite(LED_2_R, LOW);
         digitalWrite(LED_2_Y, HIGH);
       }
       else
       {
+        digitalWrite(LED_2_R, HIGH);
         digitalWrite(LED_2_Y, LOW);
       }
 
@@ -223,12 +242,11 @@ void stepper_control()
         digitalWrite(LED_2_G, LOW);
         digitalWrite(LED_2_Y, HIGH);
       }
-      
-      
+
       if (!digitalRead(TUMBLER_3))
       {
         tumbler_3_flag = true;
-        Serial.print('O');
+        Serial.print('X');
       }
     }
   }
@@ -239,9 +257,31 @@ void wait_2nd_tumbler()
   if (tumbler_2_flag)
   {
     Serial.print('T');
-    // delay(100);
-    // Serial.print(stepper.getCurrentDeg());
     stepper_control();
+  }
+}
+
+void send_packets()
+{
+  digitalWrite(LED_3_R, LOW);
+  digitalWrite(LED_3_Y, HIGH);
+  char prefix = waitChar();
+  if (prefix == 'N')
+  {
+    int num_packets = 255;     // Количество пакетов данных
+    Serial.print(num_packets); // Отправка количества пакетов
+
+    char prefix = waitChar();
+    if (prefix == 'G')
+    {
+      for (int i = 1; i <= num_packets; ++i)
+      {
+        Serial.print(i); // Отправка номера пакета
+        delay(100);      // Задержка для устойчивости
+      }
+      digitalWrite(LED_3_Y, LOW);
+      digitalWrite(LED_3_G, HIGH);
+    }
   }
 }
 
@@ -256,6 +296,12 @@ void loop()
   {
     tumbler_2_flag = true;
     wait_2nd_tumbler();
+  }
+  if (!digitalRead(TUMBLER_3) && !flag_done)
+  {
+    Serial.print('M');
+    send_packets();
+    flag_done = true;
   }
   // stepper.runSpeed();
 }
