@@ -32,8 +32,9 @@ bool tumbler_1_flag = false;
 bool tumbler_2_flag = false;
 bool tumbler_3_flag = false;
 
-GStepper<STEPPER4WIRE> stepper(360, STEPPER_NB, STEPPER_PB, STEPPER_NA, STEPPER_PA);
+GStepper<STEPPER4WIRE> stepper(100, STEPPER_NB, STEPPER_PB, STEPPER_NA, STEPPER_PA);
 Encoder enc1(ENCODER_1_CLK, ENCODER_1_DT);
+Encoder enc2(ENCODER_2_CLK, ENCODER_2_DT);
 
 void setup()
 {
@@ -45,9 +46,10 @@ void setup()
 
   enc1.setType(TYPE1);
   enc1.setDirection(REVERSE);
+  enc2.setType(TYPE1);
+  enc2.setDirection(REVERSE);
 
   stepper.setSpeed(360);
-  stepper.setCurrentDeg(0);
 
   pinMode(LED_1_R, OUTPUT);
   pinMode(LED_1_Y, OUTPUT);
@@ -128,14 +130,12 @@ void enter_key()
 
 void mobile_connect()
 {
-  bool flag = false;
   char command = waitChar();
   if (command == 'B')
   {
     digitalWrite(LED_1_R, LOW);
     digitalWrite(LED_1_Y, HIGH);
     enter_key();
-    flag = true;
   }
 }
 void wait_1st_tumbler()
@@ -149,33 +149,59 @@ void wait_1st_tumbler()
 
 long stepper_position = 0;
 
+void stepper_control()
+{
+  char answer = waitChar();
+  if (answer == 'S')
+  {
+    int freq = 0;
+    while (tumbler_2_flag && !tumbler_3_flag)
+    {
+      enc1.tick();
+      if (enc1.isRight()) {
+        stepper_position++;
+        stepper.setTarget(stepper_position);
+        Serial.print(stepper_position);
+      }
+      if (enc1.isLeft()) {
+        stepper_position--;
+        stepper.setTarget(stepper_position);
+        Serial.print(stepper_position);
+      }
+      stepper.tick();
+  
+      enc2.tick();
+      if (enc2.isRight()) {
+        freq++;
+      }
+      if (enc2.isLeft()) {
+        freq--;
+      }
+
+      tumbler_3_flag = !digitalRead(TUMBLER_3);
+    }
+  }
+}
+
 void wait_2nd_tumbler()
 {
-  while (tumbler_2_flag && !stepper.tick())
+  if (tumbler_2_flag)
   {
-    enc1.tick();
-  
-    if (enc1.isRight()) {
-      stepper_position++;
-      stepper.setTarget(stepper_position);
-    }
-    if (enc1.isLeft()) {
-      stepper_position--;а
-      stepper.setTarget(stepper_position);
-    }
-
-    stepper.tick();
+    Serial.print('T');
+    delay(100);
+    Serial.print(stepper.getCurrentDeg());
+    stepper_control();
   }
 }
 
 void loop()
 {
-  if (!digitalRead(TUMBLER_1) && !tumbler_1_flag)
+  if (!digitalRead(TUMBLER_1) && !tumbler_1_flag && !tumbler_2_flag && !tumbler_3_flag)
   {
     tumbler_1_flag = true;
     wait_1st_tumbler();
   }
-  if (!digitalRead(TUMBLER_2) && tumbler_1_flag)
+  if (!digitalRead(TUMBLER_2) && tumbler_1_flag && !tumbler_2_flag && !tumbler_3_flag)
   {
     tumbler_2_flag = true;
     wait_2nd_tumbler();

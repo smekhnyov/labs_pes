@@ -136,6 +136,11 @@ void receive_password()
   }
 }
 
+void get_settings()
+{
+  
+}
+
 void loop()
 {
   char command = waitChar();
@@ -146,5 +151,9 @@ void loop()
     lcd.print("Initialize...");
     delay(500);
     receive_password();
+  case 'T':
+    Serial.print('S');
+    get_settings();
   }
+
 }
