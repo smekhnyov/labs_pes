@@ -38,6 +38,8 @@ GStepper<STEPPER4WIRE> stepper(100, STEPPER_NB, STEPPER_PB, STEPPER_NA, STEPPER_
 Encoder enc1(ENCODER_1_CLK, ENCODER_1_DT);
 Encoder enc2(ENCODER_2_CLK, ENCODER_2_DT);
 
+unsigned long timer;
+
 void setup()
 {
   pinMode(TUMBLER_1, INPUT_PULLUP);
@@ -68,8 +70,6 @@ void setup()
   digitalWrite(LED_1_R, HIGH);
   digitalWrite(LED_2_R, HIGH);
   digitalWrite(LED_3_R, HIGH);
-
-  srand(time(NULL));
 }
 
 int waitInt()
@@ -92,12 +92,14 @@ char waitChar()
 
 int generate_random_key()
 {
-  return rand() % 9999;
+  timer = millis();
+  randomSeed(timer);
+  return random(1000, 10000);
 }
 
 void enter_key()
 {
-  int key = 1234;
+  int key = generate_random_key();
   Serial.print('T');
   char answer = waitChar();
   if (answer == 'O')
@@ -291,7 +293,11 @@ void send_packets()
     {
       for (int i = 1; i <= num_packets; ++i)
       {
-        Serial.print(i); // Отправка номера пакета
+        int random_value = random(0, 101);
+        if (random_value <= total_rate)
+        {
+          Serial.print(i); // Отправка номера пакета
+        }
         delay(100);      // Задержка для устойчивости
       }
       digitalWrite(LED_3_Y, LOW);
@@ -318,5 +324,4 @@ void loop()
     send_packets();
     flag_done = true;
   }
-  // stepper.runSpeed();
 }
