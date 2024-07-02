@@ -1,6 +1,7 @@
 #include <LiquidCrystal.h>
 #include <SoftwareSerial.h>
 #include <Keypad.h>
+#include <EEPROM.h>
 
 #define LCD_RS PIN_PB0
 #define LCD_En PIN_PD7
@@ -166,27 +167,53 @@ void display_progress_third_switch()
 {
   lcd.clear();
   lcd.setCursor(0, 0);
-  lcd.print("Progress: 1%");
+  lcd.print("Progress: 0%");
 
   int num_packets = waitInt();
   Serial.print('G');
   int received_packets = 0;
   int progress = 0;
+  bool abort_flag = false;
 
-  while (received_packets < num_packets)
+  while (received_packets < num_packets && !abort_flag)
   {
-    char received_data = waitChar();
-    if (received_data > 0)
+    char prefix = waitChar();
+    if (prefix == 'A')
     {
-      received_packets++;
-      progress = (received_packets * 100) / num_packets;
+      int received_data = waitInt();
+      if (received_data > 0)
+      {
+        received_packets++;
+        progress = (received_packets * 100) / num_packets;
+        lcd.clear();
+        lcd.setCursor(0, 0);
+        lcd.print("Progress: ");
+        lcd.print(progress);
+        lcd.print("%");
+        delay(100);
+      }
+    }
+    else if (prefix == 'B')
+    {
+      continue;
+    }
+    else if (prefix == 'E')
+    {
       lcd.clear();
       lcd.setCursor(0, 0);
-      lcd.print("Progress: ");
-      lcd.print(progress);
-      lcd.print("%");
-    }
+      lcd.print("Error!");
+      abort_flag = true;
+      delay(1000);
+    } 
   }
+  EEPROM.put(0, received_packets);
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print("Received:");
+  lcd.setCursor(0, 1);
+  lcd.print(received_packets);
+  lcd.print("/");
+  lcd.print(num_packets);
 }
 
 void loop()

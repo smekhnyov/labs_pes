@@ -168,7 +168,7 @@ int abc(int accuracy)
 
 void stepper_control()
 {
-  int target = 30;
+  int target = random(-100, 101);
   int zero_point;
   if (target > 0) zero_point = 50 - target;
   else zero_point = 50 + target;
@@ -280,6 +280,8 @@ void wait_2nd_tumbler()
 
 void send_packets()
 {
+  int lost_count = 0;
+  bool abort_flag = false;
   digitalWrite(LED_3_R, LOW);
   digitalWrite(LED_3_Y, HIGH);
   char prefix = waitChar();
@@ -291,17 +293,47 @@ void send_packets()
     char prefix = waitChar();
     if (prefix == 'G')
     {
-      for (int i = 1; i <= num_packets; ++i)
+      for (int i = 1; i <= num_packets && !abort_flag; ++i)
       {
         int random_value = random(0, 101);
         if (random_value <= total_rate)
         {
+          Serial.print('A');
           Serial.print(i); // Отправка номера пакета
+          lost_count = 0;
+          digitalWrite(SPEAKER, HIGH);
+          delay(50);
+          digitalWrite(SPEAKER, LOW);
+        }
+        else 
+        {
+          Serial.print('B');
+          lost_count++;
+          --i;
+        }
+        if (lost_count > 2)
+        {
+          Serial.print('E');
+          abort_flag = true;
+          digitalWrite(LED_3_Y, LOW);
+          digitalWrite(SPEAKER, HIGH);
+          for (int j = 0; j < 10; j++)
+          {
+             digitalWrite(LED_3_R, HIGH);
+             delay(100);
+             digitalWrite(LED_3_R, LOW);
+             delay(100);
+          }
+          digitalWrite(LED_3_R, HIGH);
+          digitalWrite(SPEAKER, LOW);
         }
         delay(100);      // Задержка для устойчивости
       }
-      digitalWrite(LED_3_Y, LOW);
-      digitalWrite(LED_3_G, HIGH);
+      if (!abort_flag)
+      {
+        digitalWrite(LED_3_Y, LOW);
+        digitalWrite(LED_3_G, HIGH);
+      }
     }
   }
 }
@@ -318,7 +350,7 @@ void loop()
     tumbler_2_flag = true;
     wait_2nd_tumbler();
   }
-  if (!digitalRead(TUMBLER_3) && !flag_done)
+  if (!digitalRead(TUMBLER_3) && tumbler_1_flag && tumbler_2_flag && !flag_done)
   {
     Serial.print('M');
     send_packets();
