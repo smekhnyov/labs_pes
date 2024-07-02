@@ -214,6 +214,7 @@ void display_progress_third_switch()
   lcd.print(received_packets);
   lcd.print("/");
   lcd.print(num_packets);
+  delay(2500);
 }
 
 void loop()
@@ -222,15 +223,37 @@ void loop()
   switch (command)
   {
   case 'A':
-    Serial.print('B');
+    while (Serial.read() != 'Y')
+    {
+      Serial.print('B');
+      delay(100);
+    }
     lcd.print("Initialize...");
     delay(500);
     receive_password();
+    break;
   case 'T':
     Serial.print('S');
     get_settings();
+    break;
   case 'M':
     Serial.print('N');
     display_progress_third_switch();
+    break;
+  case 'W':
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.print("Turn off all");
+    lcd.setCursor(0, 1);
+    lcd.print("tumblers");
+    delay(100);
+    break;
+  case 'I':
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.print("Disconnect");
+    lcd.setCursor(0, 1);
+    lcd.print("mobile");
+    break;
   }
 }

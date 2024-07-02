@@ -26,7 +26,9 @@
 #define TUMBLER_2 PIN_PD7
 #define TUMBLER_3 PIN_PB0
 
-#define SPEAKER 9
+#define SPEAKER PIN_PB1
+
+#define STEPPER_STEPS 100
 
 bool tumbler_1_flag = false;
 bool tumbler_2_flag = false;
@@ -34,7 +36,7 @@ bool tumbler_3_flag = false;
 
 bool flag_done = false;
 
-GStepper<STEPPER4WIRE> stepper(100, STEPPER_NB, STEPPER_PB, STEPPER_NA, STEPPER_PA);
+GStepper<STEPPER4WIRE> stepper(STEPPER_STEPS, STEPPER_NB, STEPPER_PB, STEPPER_NA, STEPPER_PA);
 Encoder enc1(ENCODER_1_CLK, ENCODER_1_DT);
 Encoder enc2(ENCODER_2_CLK, ENCODER_2_DT);
 
@@ -90,6 +92,15 @@ char waitChar()
   return receivedData;
 }
 
+float waitFloat()
+{
+  while (Serial.available() == 0)
+  {
+  }
+  float receivedData = Serial.parseFloat();
+  return receivedData;
+}
+
 int generate_random_key()
 {
   timer = millis();
@@ -132,29 +143,26 @@ void enter_key()
   }
 }
 
-void mobile_connect()
+void wait_1st_tumbler()
 {
-  char command = waitChar();
-  if (command == 'B')
+  if (tumbler_1_flag)
   {
+    while (Serial.read() != 'B')
+    {
+      Serial.print('A');
+      delay(100);
+    }
+    Serial.print('Y');
     digitalWrite(LED_1_R, LOW);
     digitalWrite(LED_1_Y, HIGH);
     enter_key();
   }
 }
-void wait_1st_tumbler()
-{
-  if (tumbler_1_flag)
-  {
-    Serial.print('A');
-    mobile_connect();
-  }
-}
 
+float min_freq = 100;
+float max_freq = 120;
+float step_freq = 0.1;
 long stepper_position = 0;
-float freq = 110;
-const float min_freq = 100;
-const float max_freq = 120;
 int motor_rate;
 int freq_rate;
 int total_rate;
@@ -168,10 +176,11 @@ int abc(int accuracy)
 
 void stepper_control()
 {
-  int target = random(-100, 101);
+  float freq = (min_freq + max_freq)/2;
+  int target = random(-STEPPER_STEPS, STEPPER_STEPS + 1);
   int zero_point;
-  if (target > 0) zero_point = 50 - target;
-  else zero_point = 50 + target;
+  if (target > 0) zero_point = (STEPPER_STEPS / 2) - target;
+  else zero_point = (STEPPER_STEPS / 2) + target;
   motor_rate = zero_point * 2;
   freq_rate = (freq-min_freq)/(max_freq-min_freq)*100;
   total_rate = (abc(abs(motor_rate)) + freq_rate)/2;
@@ -223,7 +232,7 @@ void stepper_control()
       enc2.tick();
       if (enc2.isRight() && freq < 120)
       {
-        freq = freq + 0.1;
+        freq = freq + step_freq;
         freq_rate = (freq-min_freq)/(max_freq-min_freq)*100;
         total_rate = (abc(abs(motor_rate)) + freq_rate)/2;
         Serial.print('P');
@@ -231,7 +240,7 @@ void stepper_control()
       }
       if (enc2.isLeft() && freq > 100)
       {
-        freq = freq - 0.1;
+        freq = freq - step_freq;
         freq_rate = (freq-min_freq)/(max_freq-min_freq)*100;
         total_rate = (abc(abs(motor_rate)) + freq_rate)/2;
         Serial.print('P');
@@ -299,7 +308,7 @@ void send_packets()
         if (random_value <= total_rate)
         {
           Serial.print('A');
-          Serial.print(i); // Отправка номера пакета
+          Serial.print(i);
           lost_count = 0;
           digitalWrite(SPEAKER, HIGH);
           delay(50);
@@ -327,7 +336,7 @@ void send_packets()
           digitalWrite(LED_3_R, HIGH);
           digitalWrite(SPEAKER, LOW);
         }
-        delay(100);      // Задержка для устойчивости
+        delay(100);
       }
       if (!abort_flag)
       {
@@ -338,22 +347,36 @@ void send_packets()
   }
 }
 
+void end()
+{
+  while (!digitalRead(TUMBLER_1) || !digitalRead(TUMBLER_2) || !digitalRead(TUMBLER_3))
+  {
+    Serial.print('W');
+    delay(100);
+  }
+  Serial.print('I');
+}
+
 void loop()
 {
-  if (!digitalRead(TUMBLER_1) && !tumbler_1_flag && !tumbler_2_flag && !tumbler_3_flag)
+  if (!digitalRead(TUMBLER_1) && !tumbler_1_flag && !tumbler_2_flag && !tumbler_3_flag && !flag_done)
   {
     tumbler_1_flag = true;
     wait_1st_tumbler();
   }
-  if (!digitalRead(TUMBLER_2) && tumbler_1_flag && !tumbler_2_flag && !tumbler_3_flag)
+  if (!digitalRead(TUMBLER_2) && tumbler_1_flag && !tumbler_2_flag && !tumbler_3_flag && !flag_done)
   {
     tumbler_2_flag = true;
     wait_2nd_tumbler();
   }
-  if (!digitalRead(TUMBLER_3) && tumbler_1_flag && tumbler_2_flag && !flag_done)
+  if (!digitalRead(TUMBLER_3) && tumbler_1_flag && tumbler_2_flag && tumbler_3_flag && !flag_done)
   {
     Serial.print('M');
     send_packets();
+  }
+  if (!digitalRead(TUMBLER_1) && !digitalRead(TUMBLER_2) && !digitalRead(TUMBLER_3) && !flag_done)
+  {
+    end();
     flag_done = true;
   }
 }
