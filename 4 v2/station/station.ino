@@ -153,6 +153,9 @@ long stepper_position = 0;
 float freq = 110;
 const float min_freq = 100;
 const float max_freq = 120;
+int motor_rate;
+int freq_rate;
+int total_rate;
 
 int abc(int accuracy)
 {
@@ -167,15 +170,15 @@ void stepper_control()
   int zero_point;
   if (target > 0) zero_point = 50 - target;
   else zero_point = 50 + target;
-  int accuracy = zero_point * 2;
+  motor_rate = zero_point * 2;
+  freq_rate = (freq-min_freq)/(max_freq-min_freq)*100;
+  total_rate = (abc(abs(motor_rate)) + freq_rate)/2;
   int last_position = stepper_position;
   char answer = waitChar();
   if (answer == 'S')
   {
     Serial.print('P');
-    Serial.print(abc(abs(accuracy)));
-    Serial.print('F');
-    Serial.print((freq-min_freq)/(max_freq-min_freq)*100);
+    Serial.print(total_rate);
     while (tumbler_2_flag && !tumbler_3_flag)
     {
       enc1.tick();
@@ -185,15 +188,16 @@ void stepper_control()
         stepper_position++;
         if (target - stepper_position < target - last_position)
         {
-          accuracy = accuracy + 2;
+          motor_rate = motor_rate + 2;
         }
         else
         {
-          accuracy = accuracy - 2;
+          motor_rate = motor_rate - 2;
         }
         stepper.setTarget(stepper_position);
+        total_rate = (abc(abs(motor_rate)) + freq_rate)/2;
         Serial.print('P');
-        Serial.print(abc(abs(accuracy)));
+        Serial.print(total_rate);
       }
       if (enc1.isLeft())
       {
@@ -201,15 +205,16 @@ void stepper_control()
         stepper_position--;
         if (target - stepper_position < target - last_position)
         {
-          accuracy = accuracy + 2;
+          motor_rate = motor_rate + 2;
         }
         else
         {
-          accuracy = accuracy - 2;
+          motor_rate = motor_rate - 2;
         }
         stepper.setTarget(stepper_position);
+        total_rate = (abc(abs(motor_rate)) + freq_rate)/2;
         Serial.print('P');
-        Serial.print(abc(abs(accuracy)));
+        Serial.print(total_rate);
       }
       stepper.tick();
 
@@ -217,18 +222,22 @@ void stepper_control()
       if (enc2.isRight() && freq < 120)
       {
         freq = freq + 0.1;
-        Serial.print('F');
-        Serial.print((freq-min_freq)/(max_freq-min_freq)*100);
+        freq_rate = (freq-min_freq)/(max_freq-min_freq)*100;
+        total_rate = (abc(abs(motor_rate)) + freq_rate)/2;
+        Serial.print('P');
+        Serial.print(total_rate);
       }
       if (enc2.isLeft() && freq > 100)
       {
         freq = freq - 0.1;
-        Serial.print('F');
-        Serial.print((freq-min_freq)/(max_freq-min_freq)*100);
+        freq_rate = (freq-min_freq)/(max_freq-min_freq)*100;
+        total_rate = (abc(abs(motor_rate)) + freq_rate)/2;
+        Serial.print('P');
+        Serial.print(total_rate);
       }
 
       
-      if (abc(abs(accuracy)) > 90)
+      if (total_rate > 80)
       {
         digitalWrite(LED_2_R, LOW);
         digitalWrite(LED_2_Y, HIGH);
@@ -239,7 +248,7 @@ void stepper_control()
         digitalWrite(LED_2_Y, LOW);
       }
 
-      if (abc(abs(accuracy)) == 100)
+      if (total_rate == 100)
       {
         digitalWrite(LED_2_Y, LOW);
         digitalWrite(LED_2_G, HIGH);
@@ -247,7 +256,6 @@ void stepper_control()
       else
       {
         digitalWrite(LED_2_G, LOW);
-        digitalWrite(LED_2_Y, HIGH);
       }
 
       if (!digitalRead(TUMBLER_3))
