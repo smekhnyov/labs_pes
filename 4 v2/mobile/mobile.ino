@@ -148,26 +148,14 @@ void receive_password()
 void get_settings()
 {
   int progress;
-  int frequency;
   char prefix = waitChar();
   while (prefix != 'X')
   {
-    if (prefix == 'P')
-    {
-      progress = waitInt();
-    }
-    else if (prefix == 'F')
-    {
-      frequency = waitFloat();
-    }
+    progress = waitInt();
     lcd.clear();
     lcd.setCursor(0, 0);
     lcd.print("Progress: ");
     lcd.print(progress);
-    lcd.print("%");
-    lcd.setCursor(0, 1);
-    lcd.print("Frequency: ");
-    lcd.print(frequency);
     lcd.print("%");
     prefix = waitChar();
   }
